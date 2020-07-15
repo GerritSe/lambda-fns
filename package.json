@@ -1,0 +1,14 @@
+{
+  "name": "lambda-fns",
+  "version": "0.0.1",
+  "description": "Extendible functional wrapper for more elegant AWS lambda functions",
+  "main": "index.js",
+  "author": "Gerrit Seger <gerrit.seger@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "jest": "^26.1.0"
+  }
+}
