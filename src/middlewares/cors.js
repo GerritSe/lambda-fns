@@ -5,6 +5,7 @@ const getOriginMatcher = origins => {
 
 const cors = (options = {}) => {
   const {
+    headers = ['*'],
     methods = ['GET', 'OPTIONS', 'POST'],
     origins = []
   } = options
@@ -16,6 +17,7 @@ const cors = (options = {}) => {
   }
 
   const headersForOrigin = origin => ({
+    'access-control-allow-headers': headers.join(','),
     'access-control-allow-methods': methods.join(','),
     ...origin && isOriginAllowed(origin) && { 'access-control-allow-origin': origin }
   })
