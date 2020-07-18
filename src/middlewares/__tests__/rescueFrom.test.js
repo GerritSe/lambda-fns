@@ -8,26 +8,16 @@ describe('rescueFrom', () => {
 
       const result = rescueFrom()(next)(event)
 
-      expect(result).toEqual(event)
+      expect(result).resolves.toEqual(event)
       expect(next).toHaveBeenCalledWith(event)
     })
 
-    it('returns the promise result of the next middleware', async () => {
-      const event = {}
-      const next = jest.fn().mockResolvedValue(event)
-
-      return rescueFrom()(next)(event).then(result => {
-        expect(result).toEqual(event)
-        expect(next).toHaveBeenCalledWith(event)
-      })
-    })
-
-    it('re-throws the exception', () => {
+    it('re-throws the exception', async () => {
       const event = {}
       const error = new Error('Some Error')
       const next = jest.fn(() => { throw error })
 
-      expect(() => { rescueFrom()(next)(event) }).toThrowError(error)
+      await expect(rescueFrom()(next)(event)).rejects.toEqual(error)
     })
 
     it('returns the rejected promise', async () => {
@@ -40,7 +30,7 @@ describe('rescueFrom', () => {
   })
 
   describe('with rescuing', () => {
-    it('catches exceptions and returns the error handlers result', () => {
+    it('catches exceptions and returns the error handlers result', async () => {
       const event = {}
       const errorHandler = jest.fn().mockReturnValue('caught')
       const error = new Error('Some Error')
@@ -48,8 +38,8 @@ describe('rescueFrom', () => {
 
       const result = rescueFrom([Error, errorHandler])(next)(event)
 
-      expect(result).toEqual('caught')
-      expect(errorHandler).toHaveBeenCalledWith(error, undefined)
+      await expect(result).resolves.toEqual('caught')
+      expect(errorHandler).toHaveBeenCalledWith(error)
     })
 
     it('catches rejected promises and returns the error handlers result', async () => {
@@ -61,10 +51,10 @@ describe('rescueFrom', () => {
       const result = rescueFrom([Error, errorHandler])(next)(event)
 
       await expect(result).resolves.toEqual('caught')
-      expect(errorHandler).toHaveBeenCalledWith(error, expect.any(Promise))
+      expect(errorHandler).toHaveBeenCalledWith(error)
     })
 
-    it('catches all exceptions if exception class is left blank', () => {
+    it('catches all exceptions if exception class is left blank', async () => {
       const event = {}
       const errorHandler = jest.fn().mockReturnValue('caught')
       const error = 'Some String Error'
@@ -72,13 +62,13 @@ describe('rescueFrom', () => {
 
       const result = rescueFrom([, errorHandler])(next)(event)
 
-      expect(result).toEqual('caught')
-      expect(errorHandler).toHaveBeenCalledWith(error, undefined)
+      await expect(result).resolves.toEqual('caught')
+      expect(errorHandler).toHaveBeenCalledWith(error)
     })
 
     describe('order of inherited exceptions', () => {
       describe('when the child exception is specified first', () => {
-        it('catches the child exception', () => {
+        it('catches the child exception', async () => {
           class ChildError extends Error { }
 
           const event = {}
@@ -92,14 +82,14 @@ describe('rescueFrom', () => {
             [Error, errorHandler]
           )(next)(event)
 
-          expect(result).toEqual('caught child')
+          await expect(result).resolves.toEqual('caught child')
           expect(errorHandler).not.toHaveBeenCalled()
-          expect(childErrorHandler).toHaveBeenCalledWith(error, undefined)
+          expect(childErrorHandler).toHaveBeenCalledWith(error)
         })
       })
 
       describe('when the parent exception is specified first', () => {
-        it('catches the parent exception', () => {
+        it('catches the parent exception', async () => {
           class ChildError extends Error { }
 
           const event = {}
@@ -113,9 +103,9 @@ describe('rescueFrom', () => {
             [ChildError, childErrorHandler]
           )(next)(event)
 
-          expect(result).toEqual('caught parent')
+          await expect(result).resolves.toEqual('caught parent')
           expect(childErrorHandler).not.toHaveBeenCalled()
-          expect(errorHandler).toHaveBeenCalledWith(error, undefined)
+          expect(errorHandler).toHaveBeenCalledWith(error)
         })
       })
     })

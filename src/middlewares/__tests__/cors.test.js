@@ -8,7 +8,7 @@ describe('cors', () => {
       const next = jest.fn().mockReturnValue({ statusCode: 200, body: 'value' })
       const result = cors()(next)(event)
 
-      expect(result).toEqual({
+      expect(result).resolves.toEqual({
         body: 'value',
         headers: {
           'access-control-allow-origin': 'app.service.de',
@@ -26,7 +26,7 @@ describe('cors', () => {
       const next = jest.fn().mockReturnValue({ statusCode: 200 })
       const result = cors({ origins: ['app.service.de'] })(next)(event)
 
-      expect(result).toEqual({
+      expect(result).resolves.toEqual({
         headers: {
           'access-control-allow-origin': 'app.service.de',
           'access-control-allow-methods': 'GET,OPTIONS,POST'
@@ -40,7 +40,7 @@ describe('cors', () => {
       const next = jest.fn().mockReturnValue({ statusCode: 200 })
       const result = cors({ origins: ['app.otherservice.de'] })(next)(event)
 
-      expect(result).toEqual({
+      expect(result).resolves.toEqual({
         headers: {
           'access-control-allow-methods': 'GET,OPTIONS,POST'
         },
@@ -54,7 +54,7 @@ describe('cors', () => {
         const next = jest.fn().mockReturnValue({ statusCode: 200 })
         const result = cors({ origins: ['app.service.de'] })(next)(event)
 
-        expect(result).toEqual({
+        expect(result).resolves.toEqual({
           headers: {
             'access-control-allow-origin': 'https://app.service.de',
             'access-control-allow-methods': 'GET,OPTIONS,POST'
@@ -68,7 +68,7 @@ describe('cors', () => {
         const next = jest.fn().mockReturnValue({ statusCode: 200 })
         const result = cors({ origins: ['app.service.de'] })(next)(event)
 
-        expect(result).toEqual({
+        expect(result).resolves.toEqual({
           headers: {
             'access-control-allow-origin': 'http://app.service.de',
             'access-control-allow-methods': 'GET,OPTIONS,POST'
@@ -82,7 +82,7 @@ describe('cors', () => {
         const next = jest.fn().mockReturnValue({ statusCode: 200 })
         const result = cors({ origins: ['app.service.de'] })(next)(event)
 
-        expect(result).toEqual({
+        expect(result).resolves.toEqual({
           headers: {
             'access-control-allow-methods': 'GET,OPTIONS,POST'
           },
@@ -93,13 +93,11 @@ describe('cors', () => {
   })
 
   describe('with an options request', () => {
-    it('does not call the next middleware, calls the callback and returns early', () => {
+    it('does not call the next middleware and returns early', () => {
       const next = jest.fn()
-      const callback = jest.fn()
+      const result = cors()(next)({ headers: { origin: 'app.service.de' }, httpMethod: 'OPTIONS' })
 
-      cors()(next)({ headers: { origin: 'app.service.de' }, httpMethod: 'OPTIONS' }, null, callback)
-
-      expect(callback).toHaveBeenCalledWith(null, {
+      expect(result).resolves.toEqual({
         headers: {
           'access-control-allow-origin': 'app.service.de',
           'access-control-allow-methods': 'GET,OPTIONS,POST'

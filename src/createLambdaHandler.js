@@ -1,4 +1,4 @@
-const createLambdaHandler = (...middlewares) => (event, context, callback) =>
-  middlewares.reduceRight((next, middleware) => middleware(result => next(result, context, callback)))(event, context, callback)
+const createLambdaHandler = (...middlewares) => async (event, context) =>
+  middlewares.reduceRight((next, middleware) => middleware(result => next(result, context)))(event, context)
 
 module.exports = createLambdaHandler

@@ -1,5 +1,3 @@
-const isPromise = require('../isPromise')
-
 const getOriginMatcher = origins => {
   const matcherOrigins = origins.map(origin => new RegExp(`^(https?://)?${origin}$`))
   return origin => matcherOrigins.some(matcherOrigin => matcherOrigin.test(origin))
@@ -22,28 +20,22 @@ const cors = (options = {}) => {
     ...origin && isOriginAllowed(origin) && { 'access-control-allow-origin': origin }
   })
 
-  const getResponseRendererForOrigin = origin => response => ({
-    ...response,
-    headers: {
-      ...response.headers,
-      ...headersForOrigin(origin)
-    }
-  })
-
-  return next => (event, _, callback) => {
+  return next => async event => {
     const { headers: { origin }, httpMethod } = event
 
     if (httpMethod === 'OPTIONS') {
-      callback(null, { statusCode: 200, headers: headersForOrigin(origin) })
-      return
+      return { statusCode: 200, headers: headersForOrigin(origin) }
     }
 
-    const response = next(event)
-    const respond = getResponseRendererForOrigin(origin)
+    const response = await next(event)
 
-    return isPromise(response)
-      ? response.then(respond)
-      : respond(response)
+    return {
+      ...response,
+      headers: {
+        ...response.headers,
+        ...headersForOrigin(origin)
+      }
+    }
   }
 }
 

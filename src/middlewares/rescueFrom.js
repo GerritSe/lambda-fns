@@ -1,26 +1,14 @@
-const isPromise = require('../isPromise')
-
-const rescueFrom = (...errors) => {
-  const handleError = (e, rejectedPromise) => {
+const rescueFrom = (...errors) => next => async event => {
+  try {
+    return await next(event)
+  } catch (e) {
     for (const [ErrorClass, rescueWith] of errors) {
       if (ErrorClass === undefined || e instanceof ErrorClass) {
-        return rescueWith(e, rejectedPromise)
+        return rescueWith(e)
       }
     }
 
     throw e
-  }
-
-  return next => event => {
-    try {
-      const response = next(event)
-
-      return isPromise(response)
-        ? response.catch(e => handleError(e, response))
-        : response
-    } catch (e) {
-      return handleError(e)
-    }
   }
 }
 
